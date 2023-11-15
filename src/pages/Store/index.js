@@ -1,6 +1,8 @@
-import React, { useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, StatusBar, Image } from "react-native";
+import { Card } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import DummyApi from "../../services/DummyApi";
 
 const productsData = [
   { id: "1", name: "Produto 1", price: 19.99 },
@@ -20,6 +22,16 @@ const productsData = [
 ];
 
 export default function Store() {
+  const [api, setApi] = useState([])
+
+  useEffect(() => {
+    DummyApi.get('/products').then(response => {
+      setApi(response.data.products)
+    })
+  }, [])
+
+  console.log(api)
+
   const [cart, setCart] = useState([]);
 
   const addToCart = (product) => {
@@ -28,11 +40,14 @@ export default function Store() {
 
   const renderProductItem = ({ item }) => (
     <View style={styles.productItem}>
-      <Text style={styles.productName}>{item.name}</Text>
+      <Card contentStyle={{width: 170}}>
+        <Card.Cover resizeMode="contain" source={{ uri: item.thumbnail }} />
+      </Card>
+      <Text style={styles.productName}>{item.title}</Text>
       <Text style={styles.productPrice}>R${item.price.toFixed(2)}</Text>
       <TouchableOpacity
         style={styles.addToCartButton}
-        onPress={() => addToCart(item)}
+        onPress={() => addToCart(item.id)}
       >
         <Text style={styles.addToCartButtonText}>Adicionar</Text>
       </TouchableOpacity>
@@ -51,13 +66,13 @@ export default function Store() {
         <View style={styles.cartContainer}>
           <Icon name="shopping-cart" size={24} color="white" style={styles.cartIcon} />
           <Text style={styles.cartSummary}>
-            Carrinho: {cart.length} 
+            Carrinho: {cart.length}
           </Text>
         </View>
       </View>
 
       <FlatList
-        data={productsData}
+        data={api}
         keyExtractor={(item) => item.id}
         renderItem={renderProductItem}
         contentContainerStyle={styles.productList}
